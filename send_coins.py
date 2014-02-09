@@ -1,12 +1,11 @@
 #!/usr/bin/python2
 
-import os
 from optparse import OptionParser
-import ConfigParser
-import StringIO
 import json
 
 from jsonrpc import ServiceProxy
+
+from config import Config
 
 ##
 ## Process arguments
@@ -38,40 +37,7 @@ inputs = json.loads(args[1])
 address = args[2]
 amount = int(float(args[3]) * 10**8)
 
-
-##
-## Load constatns
-##
-
-CONFIG_SECTION = kind
-
-config = ConfigParser.ConfigParser()
-config.read('coins.cfg')
-
-if not config.has_section(CONFIG_SECTION):
-    raise RuntimeError('Config section for %s not found' % CONFIG_SECTION)
-
-## utility function
-def get_conf(key, default=None):
-    if config.has_option(CONFIG_SECTION, key):
-        return config.get(CONFIG_SECTION, key)
-    return default
-
-PRIO_THRESHOLD = int(get_conf('priority_threshold'))
-OUTPUT_THRESHOLD = int(get_conf('soft_dust_limit'))
-
-# load coin config
-coin_config = os.path.expanduser(get_conf('config_path'))
-# trick to load a config file without sections
-dummy_fp = StringIO.StringIO(("[%s]\n" % CONFIG_SECTION) + open(coin_config, 'r').read())
-config.readfp(dummy_fp)
-
-RPC_USER = get_conf('rpcuser')
-RPC_PASS = get_conf('rpcpassword')
-RPC_PORT = int(get_conf('rpcport'))
-RPC_HOST = get_conf('rpcconnect', '127.0.0.1')
-PAY_TX_FEE = int(float(get_conf('paytxfee', 0)) * 10**8)
-MIN_TX_FEE = int(float(get_conf('mintxfee', 0.001)) * 10**8)
+config = Config(kind)
 
 
 ##
@@ -95,7 +61,8 @@ def get_change_address(proxy):
     return proxy.getnewaddress()
 
 
-proxy = ServiceProxy('http://%s:%s@%s:%d/' % (RPC_USER, RPC_PASS, RPC_HOST, RPC_PORT))
+proxy = ServiceProxy('http://%s:%s@%s:%d/' % (config.RPC_USER, config.RPC_PASS,
+                                              config.RPC_HOST, config.RPC_PORT))
 
 chgaddress = get_change_address(proxy)
 
@@ -116,22 +83,23 @@ for inp in inputs:
     prio += int(value * 10**8) * conf
 prio = int(prio / size)
 
-payfee = PAY_TX_FEE * (1 + int(size / 1000))
+payfee = config.PAY_TX_FEE * (1 + int(size / 1000))
 
-minfee = MIN_TX_FEE * (1 + int(size / 1000))
-if prio >= PRIO_THRESHOLD and size < 5000:
+minfee = config.MIN_TX_FEE * (1 + int(size / 1000))
+if prio >= config.PRIO_THRESHOLD and size < 5000:
     minfee = 0
-if amount < OUTPUT_THRESHOLD:
-    minfee += MIN_TX_FEE
-if total-amount-minfee < OUTPUT_THRESHOLD:
-    minfee += MIN_TX_FEE
+if amount < config.OUTPUT_THRESHOLD:
+    minfee += config.MIN_TX_FEE
+if total-amount-minfee < config.OUTPUT_THRESHOLD:
+    minfee += config.MIN_TX_FEE
 
 fee = max(payfee, minfee)
 
 change = total - amount - fee
 
 if change <= 0:
-    raise RuntimeError('Insufficient inputs: change = %f' % (float(change) / 10**8))
+    raise RuntimeError('Insufficient inputs: change = %f' %
+                        (float(change) / 10**8))
 
 if opts.dryrun:
     print('Total amount: %f' % (float(total) / 10**8))
