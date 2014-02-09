@@ -20,6 +20,9 @@ class Config:
         self.PRIO_THRESHOLD = int(get_conf('priority_threshold'))
         self.OUTPUT_THRESHOLD = int(get_conf('soft_dust_limit'))
         self.FREE_TX_SIZE = int(get_conf('free_tx_size'))
+        self.INPUT_SIZE = int(get_conf('input_size'))
+        self.OUTPUT_SIZE = int(get_conf('output_size'))
+        self.BASE_SIZE = int(get_conf('base_size'))
 
         # load coin config
         coin_config = os.path.expanduser(get_conf('config_path'))
@@ -34,4 +37,3 @@ class Config:
         self.RPC_HOST = get_conf('rpcconnect', '127.0.0.1')
         self.PAY_TX_FEE = int(float(get_conf('paytxfee', 0)) * 10**8)
         self.MIN_TX_FEE = int(float(get_conf('mintxfee', 0.001)) * 10**8)
-
