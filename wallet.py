@@ -94,3 +94,10 @@ class Wallet:
         print('Fee: %f' % (float(res['fee']) / 10**8))
         print('Size: %d bytes' % res['size'])
         print('Priority: %d' % res['prio'])
+
+    def unspent_coins(self):
+        coins = self.proxy.listunspent(6)
+        for c in coins:
+            c['amount'] = int(c['amount'] * 10**8)
+            c['prio'] = c['amount'] * c['confirmations']
+        return coins
