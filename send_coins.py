@@ -86,7 +86,7 @@ prio = int(prio / size)
 payfee = config.PAY_TX_FEE * (1 + int(size / 1000))
 
 minfee = config.MIN_TX_FEE * (1 + int(size / 1000))
-if prio >= config.PRIO_THRESHOLD and size < 5000:
+if prio >= config.PRIO_THRESHOLD and size < config.FREE_TX_SIZE:
     minfee = 0
 if amount < config.OUTPUT_THRESHOLD:
     minfee += config.MIN_TX_FEE

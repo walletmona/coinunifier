@@ -19,6 +19,7 @@ class Config:
 
         self.PRIO_THRESHOLD = int(get_conf('priority_threshold'))
         self.OUTPUT_THRESHOLD = int(get_conf('soft_dust_limit'))
+        self.FREE_TX_SIZE = int(get_conf('free_tx_size'))
 
         # load coin config
         coin_config = os.path.expanduser(get_conf('config_path'))
