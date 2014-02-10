@@ -1,6 +1,6 @@
 
-import ConfigParser
-import StringIO
+import io
+import configparser
 
 from jsonrpc import ServiceProxy
 
@@ -25,8 +25,8 @@ class WalletBase:
     def load_config(self, config_path):
         # trick to load a config file without sections
         con = open(config_path, 'r').read()
-        dummy_fp = StringIO.StringIO(("[%s]\n" % TMP_SECTION) + con)
-        config = ConfigParser.ConfigParser()
+        dummy_fp = io.StringIO(("[%s]\n" % TMP_SECTION) + con)
+        config = configparser.ConfigParser()
         config.readfp(dummy_fp)
 
         ## utility function
