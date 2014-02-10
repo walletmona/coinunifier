@@ -4,8 +4,7 @@ import sys
 from optparse import OptionParser
 from bisect import bisect_right
 
-from config import Config
-from wallet import Wallet
+from coinunifier.wallet.factory import load_wallet
 
 ##
 ## Process arguments
@@ -56,13 +55,13 @@ def coins2inputs(coins):
 def free_simple_unify(wallet, coins):
     n = len(coins)
 
-    remain = config.FREE_TX_SIZE-1 - config.BASE_SIZE - 2*config.OUTPUT_SIZE
-    maxin = min(n, int(remain / config.INPUT_SIZE))
+    remain = wallet.free_tx_size-1 - wallet.base_size - 2*wallet.output_size
+    maxin = min(n, int(remain / wallet.input_size))
 
     coins.sort(key=lambda x: x['amount'])
     pos = bisect_right([c['amount'] for c in coins], theta)
     pos = min(pos, maxin-1)
-    size = config.BASE_SIZE + (pos+1)*config.INPUT_SIZE + 2*config.OUTPUT_SIZE
+    size = wallet.base_size + (pos+1)*wallet.input_size + 2*wallet.output_size
 
     total = 0
     prio = 0
@@ -72,8 +71,8 @@ def free_simple_unify(wallet, coins):
     index = -1
 
     for i in range(pos, n):
-        if (total+coins[i]['amount'] >= 2*config.OUTPUT_THRESHOLD and
-            prio+coins[i]['prio'] >= config.PRIO_THRESHOLD*size):
+        if (total+coins[i]['amount'] >= 2*wallet.soft_dust_limit and
+            prio+coins[i]['prio'] >= wallet.prio_threshold*size):
             index = i
             break
 
@@ -102,19 +101,12 @@ def free_simple_unify(wallet, coins):
 ## Main
 ##
 
-config = Config(kind)
+wallet = load_wallet(kind)
+wallet.connect()
 
-if amount < config.OUTPUT_THRESHOLD:
+if amount < wallet.soft_dust_limit:
     print('AMOUNT should be at least %.8f for free unify' %
-           (float(config.OUTPUT_THRESHOLD) / 10**8))
+           (float(wallet.soft_dust_limit) / 10**8))
     sys.exit(1)
-
-proxy = ServiceProxy('http://%s:%s@%s:%d/' % (config.RPC_USER, config.RPC_PASS,
-                                              config.RPC_HOST, config.RPC_PORT))
-
-wallet = Wallet(config.PAY_TX_FEE, config.MIN_TX_FEE, config.PRIO_THRESHOLD,
-                config.OUTPUT_THRESHOLD, config.FREE_TX_SIZE)
-wallet.connect(config.RPC_USER, config.RPC_PASS,
-               config.RPC_HOST, config.RPC_PORT)
 
 free_simple_unify(wallet, wallet.unspent_coins())
