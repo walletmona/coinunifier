@@ -1,19 +1,54 @@
 
+import io
+import configparser
+
 from jsonrpc import ServiceProxy
 
-class Wallet:
+TMP_SECTION = '__tmp__'
+
+class WalletBase:
+
     def __init__(self, pay_tx_fee, min_tx_fee,
-                 prio_theta, out_theta, free_tx_size):
+                 prio_threshold, soft_dust_limit, free_tx_size):
         self.proxy = None
         self.pay_tx_fee = pay_tx_fee
         self.min_tx_fee = min_tx_fee
-        self.prio_theta = prio_theta
-        self.out_theta = out_theta
+        self.prio_threshold = prio_threshold
+        self.soft_dust_limit = soft_dust_limit
         self.free_tx_size = free_tx_size
 
-    def connect(self, user, password, host, port):
+    def set_size(self, base_size, input_size, output_size):
+        self.base_size = base_size
+        self.input_size = input_size
+        self.output_size = output_size
+
+    def load_config(self, config_path):
+        # trick to load a config file without sections
+        con = open(config_path, 'r').read()
+        dummy_fp = io.StringIO(("[%s]\n" % TMP_SECTION) + con)
+        config = configparser.ConfigParser()
+        config.readfp(dummy_fp)
+
+        ## utility function
+        def get_conf(key, default=None):
+            if config.has_option(TMP_SECTION, key):
+                return config.get(TMP_SECTION, key)
+            return default
+
+        self.rpc_user = get_conf('rpcuser')
+        self.rpc_pass = get_conf('rpcpassword')
+        self.rpc_port = int(get_conf('rpcport'))
+        self.rpc_host = get_conf('rpcconnect', '127.0.0.1')
+
+        if config.has_option(TMP_SECTION, 'paytxfee'):
+            self.pay_tx_fee = int(float(get_conf('paytxfee')) * 10**8)
+        if config.has_option(TMP_SECTION, 'mintxfee'):
+            self.min_tx_fee = int(float(get_conf('mintxfee')) * 10**8)
+
+    def connect(self):
         self.proxy = ServiceProxy('http://%s:%s@%s:%d/' %
-                                   (user, password, host, port))
+                                   (self.rpc_user, self.rpc_pass,
+                                    self.rpc_host, self.rpc_port))
 
     def get_size(self, inputs, outputs):
         raw = self.proxy.createrawtransaction(inputs, outputs)
@@ -55,11 +90,11 @@ class Wallet:
         payfee = self.pay_tx_fee * (1 + int(size / 1000))
 
         minfee = self.min_tx_fee * (1 + int(size / 1000))
-        if prio >= self.prio_theta and size < self.free_tx_size:
+        if prio >= self.prio_threshold and size < self.free_tx_size:
             minfee = 0
-        if amount < self.out_theta:
+        if amount < self.soft_dust_limit:
             minfee += self.min_tx_fee
-        if total-amount-minfee < self.out_theta:
+        if total-amount-minfee < self.soft_dust_limit:
             minfee += self.min_tx_fee
         fee = max(payfee, minfee)
 

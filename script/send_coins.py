@@ -1,10 +1,9 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 from optparse import OptionParser
 import json
 
-from config import Config
-from wallet import Wallet
+from coinunifier.wallet.factory import load_wallet
 
 ##
 ## Process arguments
@@ -41,12 +40,8 @@ amount = int(float(args[3]) * 10**8)
 ## Main
 ##
 
-config = Config(kind)
-
-wallet = Wallet(config.PAY_TX_FEE, config.MIN_TX_FEE, config.PRIO_THRESHOLD,
-                config.OUTPUT_THRESHOLD, config.FREE_TX_SIZE)
-wallet.connect(config.RPC_USER, config.RPC_PASS,
-               config.RPC_HOST, config.RPC_PORT)
+wallet = load_wallet(kind)
+wallet.connect()
 
 if opts.dryrun:
     wallet.show_send_info(inputs, address, amount)
