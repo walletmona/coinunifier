@@ -11,7 +11,7 @@ from coinunifier.wallet.factory import load_wallet
 ##
 
 USAGE = ''''
-% free_simple_unify.py [OPTIONS] KIND THRESHOLD ADDRESS AMOUNT
+% unify_coins_simple.py [OPTIONS] KIND THRESHOLD ADDRESS AMOUNT
 
   KIND: kind of coin (e.g. bitcoin, litecoin, ...)
   THRESHOLD: threshold amount
@@ -52,7 +52,7 @@ def coins2inputs(coins):
 # Unify sub-threshold coins to a large-amount-and-high-priority coin
 #
 # O(n log n)
-def free_simple_unify(wallet, coins):
+def unify_coins_simple(wallet, coins):
     n = len(coins)
 
     remain = wallet.free_tx_size-1 - wallet.base_size - 2*wallet.output_size
@@ -113,4 +113,4 @@ if amount < wallet.soft_dust_limit:
            (float(wallet.soft_dust_limit) / 10**8))
     sys.exit(1)
 
-free_simple_unify(wallet, wallet.unspent_coins())
+unify_coins_simple(wallet, wallet.unspent_coins())
