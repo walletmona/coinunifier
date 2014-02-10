@@ -63,6 +63,10 @@ def free_simple_unify(wallet, coins):
     pos = min(pos, maxin-1)
     size = wallet.base_size + (pos+1)*wallet.input_size + 2*wallet.output_size
 
+    if pos == 0:
+        print('No sub-threshold coins found')
+        return
+
     total = 0
     prio = 0
     for i in range(0, pos):
