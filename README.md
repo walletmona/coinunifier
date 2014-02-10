@@ -10,6 +10,7 @@ Required external libraries:
 * [python-json-rpc](http://json-rpc.org/wiki/python-json-rpc "python-json-rpc")
 
 Install with:
+
     python setup.py install
 
 Script Usage
@@ -18,9 +19,11 @@ Script Usage
 Two scripts are installed:
 * `send_coins.py` sends coin with specified inputs
 * `unify_coins_simple.py` unifies divisional coins with a large-amount and high-priority coin without fee
+
 Run with `--help` for more detail.
 
 Usage examples:
+
     # Sends 0.001 monacoins to the ADDRESS by using the INPUTS
     # (like '[{"txid":...,"vout":...},...]'). Calculates Fee as well as
     # reference implementations and gives the change.
