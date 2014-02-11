@@ -21,5 +21,5 @@ setup(name='coinunifier',
                    'Topic :: Utilities',
                   ],
       scripts = ['script/send_coins.py', 'script/unify_coins_simple.py'],
-      requires = ['jsonrpc(<=0.01)'],
+      requires = ['bitcoinrpc'],
      )

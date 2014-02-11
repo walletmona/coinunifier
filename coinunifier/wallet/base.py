@@ -2,7 +2,7 @@
 import io
 import configparser
 
-from jsonrpc import ServiceProxy
+from bitcoinrpc.authproxy import AuthServiceProxy
 
 TMP_SECTION = '__tmp__'
 
@@ -46,9 +46,9 @@ class WalletBase:
             self.min_tx_fee = int(float(get_conf('mintxfee')) * 10**8)
 
     def connect(self):
-        self.proxy = ServiceProxy('http://%s:%s@%s:%d/' %
-                                   (self.rpc_user, self.rpc_pass,
-                                    self.rpc_host, self.rpc_port))
+        self.proxy = AuthServiceProxy('http://%s:%s@%s:%d/' %
+                                      (self.rpc_user, self.rpc_pass,
+                                       self.rpc_host, self.rpc_port))
 
     def get_size(self, inputs, outputs):
         raw = self.proxy.createrawtransaction(inputs, outputs)
