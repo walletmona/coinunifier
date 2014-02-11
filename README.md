@@ -24,6 +24,7 @@ Run with `--help` for more detail.
 
 Usage examples:
 
+    # [dryrun]
     # Sends 0.001 monacoins to the ADDRESS by using the INPUTS
     # (like '[{"txid":...,"vout":...},...]'). Calculates Fee as well as
     # reference implementations and gives the change.
@@ -32,13 +33,15 @@ Usage examples:
     # Run with --no-dry-run to broadcast the transaction
     send_coins.py --no-dry-run monacoin INPUTS ADDRESS 0.001
 
+
+    # [dryrun]
     # Makes a free transaction with as many sub-threshold monacoins (< 0.123)
-    # as possible. Sends 0.001 monacoin to the ADDRESS by using this inputs
-    # and gives the change (unified coin).
-    unify_coins_simple.py monacoin 0.123 ADDRESS 0.001
+    # as possible. Sends 0.001 monacoin (== DUST_SOFT_LIMIT) to the ADDRESS
+    # by using this inputs and gives the change (unified coin).
+    unify_coins_simple.py monacoin 0.123 ADDRESS
 
     # Run with --no-dry-run to broadcast the transaction
-    unify_coins_simple.py --no-dry-run monacoin 0.123 ADDRESS 0.001
+    unify_coins_simple.py --no-dry-run monacoin 0.123 ADDRESS
 
 
 License
