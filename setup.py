@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='coinunifier',
-      version='0.2.2',
+      version='0.2.5',
       author='WalletMona.com',
       author_email='walletmona@gmail.com',
       url='http://github.com/walletmona/coinunifier/',
