@@ -134,5 +134,5 @@ class WalletBase:
         coins = self.proxy.listunspent(6)
         for c in coins:
             c['amount'] = int(c['amount'] * 10**8)
-            c['prio'] = c['amount'] * c['confirmations']
+            c['prio'] = c['amount'] * (c['confirmations'] + 1)
         return coins

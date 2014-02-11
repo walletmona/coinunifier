@@ -70,7 +70,7 @@ def unify_coins_simple(wallet, coins):
 
     camounts = cumsum(amounts)
     cprios = cumsum(prios)
-    hiprios = prios
+    hiprios = list(prios)
     for i in range(len(prios)-1, 0, -1):
         hiprios[i-1] = max(hiprios[i-1], hiprios[i])
 
@@ -79,8 +79,8 @@ def unify_coins_simple(wallet, coins):
         print('No sub-threshold coins found')
         return
 
-    # Determine included sub-threshold coins by binary search in [left, right]
-    left = 1
+    # Determine included sub-threshold coins by binary search in (left, right]
+    left = 0
     right = num
     while left < right:
         # use coins in range [0, m) and a large coin
