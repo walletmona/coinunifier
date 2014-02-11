@@ -16,7 +16,7 @@ USAGE = ''''
   KIND: kind of coin (e.g. bitcoin, litecoin, ...)
   THRESHOLD: threshold amount
   ADDRESS: address to send coins
-  AMOUNT: amount to send (should be greater than or equal to soft_dust_limit)'''
+  AMOUNT: amount to send (should be greater than or equal to dust_soft_limit)'''
 
 DESCRIPTION = \
     'Make a free transaction with sub-THRESHOLD coins and a least' \
@@ -75,7 +75,7 @@ def unify_coins_simple(wallet, coins):
     index = -1
 
     for i in range(pos, n):
-        if (total+coins[i]['amount'] >= 2*wallet.soft_dust_limit and
+        if (total+coins[i]['amount'] >= 2*wallet.dust_soft_limit and
             prio+coins[i]['prio'] >= wallet.prio_threshold*size):
             index = i
             break
@@ -108,9 +108,9 @@ def unify_coins_simple(wallet, coins):
 wallet = load_wallet(kind)
 wallet.connect()
 
-if amount < wallet.soft_dust_limit:
+if amount < wallet.dust_soft_limit:
     print('AMOUNT should be at least %.8f for free unify' %
-           (float(wallet.soft_dust_limit) / 10**8))
+           (float(wallet.dust_soft_limit) / 10**8))
     sys.exit(1)
 
 unify_coins_simple(wallet, wallet.unspent_coins())

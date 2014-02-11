@@ -9,12 +9,12 @@ TMP_SECTION = '__tmp__'
 class WalletBase:
 
     def __init__(self, pay_tx_fee, min_tx_fee,
-                 prio_threshold, soft_dust_limit, free_tx_size):
+                 prio_threshold, dust_soft_limit, free_tx_size):
         self.proxy = None
         self.pay_tx_fee = pay_tx_fee
         self.min_tx_fee = min_tx_fee
         self.prio_threshold = prio_threshold
-        self.soft_dust_limit = soft_dust_limit
+        self.dust_soft_limit = dust_soft_limit
         self.free_tx_size = free_tx_size
 
     def set_size(self, base_size, input_size, output_size):
@@ -92,9 +92,9 @@ class WalletBase:
         minfee = self.min_tx_fee * (1 + int(size / 1000))
         if prio >= self.prio_threshold and size < self.free_tx_size:
             minfee = 0
-        if amount < self.soft_dust_limit:
+        if amount < self.dust_soft_limit:
             minfee += self.min_tx_fee
-        if total-amount-minfee < self.soft_dust_limit:
+        if total-amount-minfee < self.dust_soft_limit:
             minfee += self.min_tx_fee
         fee = max(payfee, minfee)
 
