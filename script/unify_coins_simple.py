@@ -2,7 +2,7 @@
 
 import sys
 from optparse import OptionParser
-from bisect import bisect_right
+from bisect import bisect_left, bisect_right
 
 from coinunifier.wallet.factory import load_wallet
 
@@ -49,6 +49,11 @@ def coins2inputs(coins):
         res.append({"txid": c['txid'], "vout": c['vout']})
     return res
 
+def cumsum(ls):
+    res = list(ls) # shallow copy
+    for i in range(1, len(res)): res[i] += res[i-1]
+    return res
+
 # Unify sub-threshold coins to a large-amount-and-high-priority coin
 #
 # O(n log n)
@@ -59,33 +64,54 @@ def unify_coins_simple(wallet, coins):
     maxin = min(n, int(remain / wallet.input_size))
 
     coins.sort(key=lambda x: x['amount'])
-    pos = bisect_right([c['amount'] for c in coins], theta)
-    pos = min(pos, maxin-1)
-    size = wallet.base_size + (pos+1)*wallet.input_size + 2*wallet.output_size
 
-    if pos == 0:
+    amounts = [c['amount'] for c in coins]
+    prios = [c['prio'] for c in coins]
+
+    camounts = cumsum(amounts)
+    cprios = cumsum(prios)
+    hiprios = prios
+    for i in range(len(prios)-1, 0, -1):
+        hiprios[i-1] = max(hiprios[i-1], hiprios[i])
+
+    num = min(bisect_right(amounts, theta), maxin-1)
+    if num == 0:
         print('No sub-threshold coins found')
         return
 
-    total = 0
-    prio = 0
-    for i in range(0, pos):
-        total += coins[i]['amount']
-        prio += coins[i]['prio']
-    index = -1
+    # Determine included sub-threshold coins by binary search in [left, right]
+    left = 1
+    right = num
+    while left < right:
+        # use coins in range [0, m) and a large coin
+        m = int((left + right + 1) / 2)
 
-    for i in range(pos, n):
-        if (total+coins[i]['amount'] >= 2*wallet.dust_soft_limit and
-            prio+coins[i]['prio'] >= wallet.prio_threshold*size):
-            index = i
-            break
+        size = wallet.base_size + (m+1)*wallet.input_size + 2*wallet.output_size
 
-    # No large coin found
-    if index == -1:
+        index = bisect_left(amounts, 2*wallet.dust_soft_limit - camounts[m-1],
+                            lo=m)
+
+        if cprios[m-1]+hiprios[index] < wallet.prio_threshold*size:
+            # decrease size
+            right = m-1
+        else:
+            # increase size
+            left = m
+    num = left
+
+    if num == 0:
         print('No large coin found')
         return
 
-    res = coins[0:pos]
+    size = wallet.base_size + (num+1)*wallet.input_size + 2*wallet.output_size
+
+    # Find a large coin
+    index = bisect_left(amounts, 2*wallet.dust_soft_limit - camounts[num-1],
+                        lo=num)
+    while cprios[num-1]+prios[index] < wallet.prio_threshold*size:
+        index += 1
+
+    res = coins[0:num]
     res.append(coins[index])
     inputs = coins2inputs(res)
 
