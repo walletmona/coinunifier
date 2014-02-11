@@ -11,12 +11,12 @@ from coinunifier.wallet.factory import load_wallet
 ##
 
 USAGE = ''''
-% free_simple_unify.py [OPTIONS] KIND THRESHOLD ADDRESS AMOUNT
+% unify_coins_simple.py [OPTIONS] KIND THRESHOLD ADDRESS AMOUNT
 
   KIND: kind of coin (e.g. bitcoin, litecoin, ...)
   THRESHOLD: threshold amount
   ADDRESS: address to send coins
-  AMOUNT: amount to send (should be greater than or equal to soft_dust_limit)'''
+  AMOUNT: amount to send (should be greater than or equal to dust_soft_limit)'''
 
 DESCRIPTION = \
     'Make a free transaction with sub-THRESHOLD coins and a least' \
@@ -52,7 +52,7 @@ def coins2inputs(coins):
 # Unify sub-threshold coins to a large-amount-and-high-priority coin
 #
 # O(n log n)
-def free_simple_unify(wallet, coins):
+def unify_coins_simple(wallet, coins):
     n = len(coins)
 
     remain = wallet.free_tx_size-1 - wallet.base_size - 2*wallet.output_size
@@ -63,6 +63,10 @@ def free_simple_unify(wallet, coins):
     pos = min(pos, maxin-1)
     size = wallet.base_size + (pos+1)*wallet.input_size + 2*wallet.output_size
 
+    if pos == 0:
+        print('No sub-threshold coins found')
+        return
+
     total = 0
     prio = 0
     for i in range(0, pos):
@@ -71,7 +75,7 @@ def free_simple_unify(wallet, coins):
     index = -1
 
     for i in range(pos, n):
-        if (total+coins[i]['amount'] >= 2*wallet.soft_dust_limit and
+        if (total+coins[i]['amount'] >= 2*wallet.dust_soft_limit and
             prio+coins[i]['prio'] >= wallet.prio_threshold*size):
             index = i
             break
@@ -104,9 +108,9 @@ def free_simple_unify(wallet, coins):
 wallet = load_wallet(kind)
 wallet.connect()
 
-if amount < wallet.soft_dust_limit:
+if amount < wallet.dust_soft_limit:
     print('AMOUNT should be at least %.8f for free unify' %
-           (float(wallet.soft_dust_limit) / 10**8))
+           (float(wallet.dust_soft_limit) / 10**8))
     sys.exit(1)
 
-free_simple_unify(wallet, wallet.unspent_coins())
+unify_coins_simple(wallet, wallet.unspent_coins())
