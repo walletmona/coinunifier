@@ -84,7 +84,7 @@ class WalletBase:
             conf = self.proxy.gettransaction(inp['txid'])['confirmations']
 
             total += int(value * 10**8)
-            prio += int(value * 10**8) * conf
+            prio += int(value * 10**8) * (conf + 1)
         prio = int(prio / size)
 
         payfee = self.pay_tx_fee * (1 + int(size / 1000))
