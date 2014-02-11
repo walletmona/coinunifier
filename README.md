@@ -7,7 +7,7 @@ Installation
 ------------
 
 Required external libraries:
-* [python-json-rpc](http://json-rpc.org/wiki/python-json-rpc "python-json-rpc")
+* [python-bitcoinrpc](https://github.com/jgarzik/python-bitcoinrpc "python-bitcoinrpc")
 
 Install with:
 

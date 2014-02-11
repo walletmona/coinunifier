@@ -3,10 +3,10 @@ import os
 
 from coinunifier.wallet.base import WalletBase
 
-DEFAULT_PAY_TX_FEE = 0 * 10**8
-DEFAULT_MIN_TX_FEE = 0.001 * 10**8
+DEFAULT_PAY_TX_FEE = int(0 * 10**8)
+DEFAULT_MIN_TX_FEE = int(0.001 * 10**8)
 
-PRIO_THRESHOLD = 10**8 * 960 / 250
+PRIO_THRESHOLD = int(10**8 * 960 / 250)
 DUST_SOFT_LIMIT = int(10**8 * 0.001)
 
 FREE_TX_SIZE = 5000
