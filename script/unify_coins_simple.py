@@ -11,18 +11,18 @@ from coinunifier.wallet.factory import load_wallet
 ##
 
 USAGE = ''''
-% unify_coins_simple.py [OPTIONS] KIND THRESHOLD ADDRESS AMOUNT
+% unify_coins_simple.py [OPTIONS] KIND THRESHOLD ADDRESS
 
   KIND: kind of coin (e.g. bitcoin, litecoin, ...)
   THRESHOLD: threshold amount
-  ADDRESS: address to send coins
-  AMOUNT: amount to send (should be greater than or equal to dust_soft_limit)'''
+  ADDRESS: address to send coins'''
 
 DESCRIPTION = \
     'Make a free transaction with sub-THRESHOLD coins and a least' \
-    ' large-amount-and-high-priority coin. Then, send AMOUNT to the ADDRESS' \
-    ' by using the inputs and deposit the change. This script is useful to' \
-    ' unify sub-threshold coins into one without fee.'
+    ' large-amount-and-high-priority coin. Then, send minimul amount of' \
+    ' coins (== DUST_SOFT_LIMIT) to the ADDRESS by using the inputs and' \
+    ' deposit the change. This script is useful to unify sub-threshold coins' \
+    ' into one without fee.'
 
 optparser = OptionParser(USAGE, description=DESCRIPTION)
 optparser.add_option('', '--no-dry-run',
@@ -30,13 +30,12 @@ optparser.add_option('', '--no-dry-run',
                      help='Broadcast a transaction to nodes')
 (opts, args) = optparser.parse_args()
 
-if len(args) != 4:
+if len(args) != 3:
     optparser.error("Incorrect number of arguments.")
 
 kind = args[0]
 theta = int(float(args[1]) * 10**8)
 address = args[2]
-amount = int(float(args[3]) * 10**8)
 
 
 ##
@@ -121,10 +120,10 @@ def unify_coins_simple(wallet, coins):
             print('  %6d  %.8f' % (c['confirmations'],
                                    float(c['amount']) / 10**8))
 
-        wallet.show_send_info(inputs, address, amount)
+        wallet.show_send_info(inputs, address, wallet.dust_soft_limit)
         print('Add --no-dry-run option to proceed')
     else:
-        print(wallet.send(inputs, address, amount))
+        print(wallet.send(inputs, address, wallet.dust_soft_limit))
 
 
 ##
@@ -133,10 +132,5 @@ def unify_coins_simple(wallet, coins):
 
 wallet = load_wallet(kind)
 wallet.connect()
-
-if amount < wallet.dust_soft_limit:
-    print('AMOUNT should be at least %.8f for free unify' %
-           (float(wallet.dust_soft_limit) / 10**8))
-    sys.exit(1)
 
 unify_coins_simple(wallet, wallet.unspent_coins())
